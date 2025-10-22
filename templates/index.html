@@ -3,10 +3,11 @@
 {% block title %}Home - Online Shop{% endblock %}
 
 {% block content %}
-<div class="container">
-    <header class="hero">
-        <h1>Welcome to the Online Shop</h1>
-        <p>Discover featured products and latest deals.</p>
-    </header>
-</div>    
+<section class="hero-section d-flex align-items-center justify-content-center text-center mb-4">
+    <div class="hero-content py-3">
+        <h1 class="display-4 fw-bold">Welcome to ShopCart!</h1>
+        <p class="lead">Your one-stop shop for all your needs.</p>
+        <a class="btn btn-primary btn-lg" href="{{ url_for('signup') }}" role="button">Shop Now</a>
+    </div>
+</section>
 {% endblock %}

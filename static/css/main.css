@@ -1,0 +1,21 @@
+.hero-section{
+    padding-top: 20%;
+    
+}
+
+
+body{
+    font-family: "Arima", system-ui;
+    
+}
+.navbar {
+  background: transparent !important;  /* Makes it fully see-through */
+  transition: background 0.3s ease;    /* Optional: smooth color change on scroll */
+}
+
+/* Optional: add shadow when scrolling down */
+.navbar.scrolled {
+  background: rgba(0, 0, 0, 0.7) !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+

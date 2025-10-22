@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Signup{% endblock %}
+{% block content %}
+
+<section>
+    <div class="container mt-5 ">
+        <div class="row justify-content-center pt-5">
+            <div class="col-md-6 bg-light pt-5" >
+                <h2 class="mb-4 text-center">Create an Account</h2>
+                <form method="POST" action="{{ url_for('signup') }}">
+
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="username" name="username" required placeholder="Username">
+                    </div>
+                    <div class="mb-3">
+                        
+                        <input type="email" class="form-control" id="email" name="email" required placeholder="Email">
+                    </div>
+                    <div class="mb-3">
+                        <input type="password" class="form-control" id="password" name="password" required placeholder="Password">
+                    </div>
+                    <div class="mb-3">
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required placeholder="Confirm Password">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+
