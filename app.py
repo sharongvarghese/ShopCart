@@ -1,6 +1,6 @@
 from flask import Flask,render_template,redirect,url_for,flash
 from werkzeug.security import generate_password_hash, check_password_hash
-from forms import SignupForm
+from forms import SignupForm, LoginForm
 from models import db,User  # import db and models
 
 app = Flask(__name__)
@@ -26,30 +26,23 @@ def home():
 def signup():
     form = SignupForm()
     if form.validate_on_submit():
-        email = form.email.data
-        username = form.username.data
-        password = form.password.data
-
-        existing_user = User.query.filter((User.email == email)).first()
-
-        if existing_user:
-            flash('User already exists.- please log in.', 'danger')
-            # return redirect(url_for('login'))
-            return redirect(url_for('signup'))
-
-        hashed_password = generate_password_hash(password, method='sha256')
-        new_user = User(email=email, username=username, password=hashed_password)
+        hashed_password = generate_password_hash(form.password.data)
+        new_user = User(email=form.email.data, username=form.username.data, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
-        flash('Account created successfully! Please log in.', 'success')
-        return redirect(url_for('home'))
-
+        return redirect(url_for('login'))
     return render_template('signup.html', form=form)   
 
-
-app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template('login.html')
+    form = LoginForm()
+    if form.validate_on_submit():
+        # At this point, email exists and password is correct
+        flash('Login successful!', 'success')
+        return redirect(url_for('home'))
+    
+    # If validation fails, the form will contain inline errors automatically
+    return render_template('login.html', form=form)
 
 if __name__ == "__main__":
     app.run(debug=True)

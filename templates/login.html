@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="login-viewport">
+    <div class="login-card">
+        <h2>Log in</h2>
+
+        <form method="POST" action="{{ url_for('login') }}">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class="form-control") }}
+                {% if form.email.errors %}
+                    {% for err in form.email.errors %}
+                        <div class="field-errors">{{ err }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(class="form-control") }}
+                {% if form.password.errors %}
+                    {% for err in form.password.errors %}
+                        <div class="field-errors">{{ err }}</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </div>
+        </form>
+
+        <p class="help-text">Don't have an account? <a href="{{ url_for('signup') }}">Sign up</a></p>
+    </div>
+</section>
+{% endblock %}
