@@ -2,6 +2,7 @@ from flask import Flask,render_template,redirect,url_for,flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from forms import SignupForm, LoginForm
 from models import db,User  # import db and models
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -12,6 +13,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize db with app
 db.init_app(app)
+migrate = Migrate(app, db)
 
 # Create tables
 with app.app_context():
