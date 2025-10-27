@@ -1,7 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
-from werkzeug.security import check_password_hash
 
 
 
@@ -27,13 +26,28 @@ class LoginForm(FlaskForm):
 
     def validate_email(self, email):
         from models import User
-        user = User.query.filter_by(email=email.data).first()
-        if not user:
+        self.user = User.query.filter_by(email=email.data).first()
+        if not self.user:
             raise ValidationError('No account found with this email. Please sign up.')
 
     def validate_password(self, password):
-        from models import User
-        user = User.query.filter_by(email=self.email.data).first()
-        if user and not check_password_hash(user.password, password.data):
+        from werkzeug.security import check_password_hash
+        # Use self.user from validate_email
+        if self.user and not check_password_hash(self.user.password, password.data):
             raise ValidationError('Incorrect password. Please try again.')
-        
+
+class ProductForm(FlaskForm):
+    name = StringField('Product Name', validators=[DataRequired()])
+    price = StringField('Price', validators=[DataRequired()])
+    description = StringField('Description')
+    image_url = StringField('Image URL')
+    category = StringField('Category', validators=[DataRequired()])
+    submit = SubmitField('Add Product')
+
+    def validate_price(self, price):
+        try:
+            float(price.data)
+        except ValueError:
+            raise ValidationError('Please enter a valid price.')
+
+

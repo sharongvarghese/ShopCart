@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel - Online Shop{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0 rounded-4">
+          <div class="card-header bg-white text-center fw-bold fs-4 border-bottom">
+            Add New Product
+          </div>
+          <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('add_product') }}">
+              {{ form.hidden_tag() }}
+              <!-- Product Name -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Product Name</label>
+                {{ form.name(class="form-control border-dark", placeholder="Enter product name") }}
+                {% for error in form.name.errors %}
+                <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <!-- Price -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Price (₹)</label>
+                {{ form.price(class="form-control border-dark", placeholder="Enter price") }}
+                {% for error in form.price.errors %}
+                <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <!-- Description -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Description</label>
+                {{ form.description(class="form-control border-dark", rows="3", placeholder="Enter product description") }}
+                {% for error in form.description.errors %}
+                <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <!-- Image URL -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Image URL</label>
+                {{ form.image_url(class="form-control border-dark", placeholder="Paste product image URL") }}
+                {% for error in form.image_url.errors %}
+                <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <!-- Category -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Category</label>
+                {{ form.category(class="form-control border-dark", placeholder="Enter or select category") }}
+                {% for error in form.category.errors %}
+                <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <!-- Submit Button -->
+              <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-dark fw-bold py-2">
+                  <i class="bi bi-plus-circle"></i> Add Product
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="text-center mt-4">
+          <a href="{{ url_for('admin') }}" class="btn btn-outline-dark">
+            <i class="bi bi-arrow-left"></i> Back to Admin Panel
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .card {
+    background-color: #ffffff;
+  }
+  label {
+    color: #000;
+  }
+  body {
+    background-color: #f8f9fa;
+  }
+</style>
+{% endblock %}
