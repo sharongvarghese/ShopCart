@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Add Category - Admin Panel{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0 rounded-4">
+          <div class="card-header bg-white text-center fw-bold fs-4 border-bottom">
+            Add New Category
+          </div>
+          <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('add_category') }}">
+              <!-- Category Name -->
+              <div class="mb-3">
+                <label class="form-label">Category Name</label>
+                <input 
+                  type="text" 
+                  class="form-control border-dark" 
+                  name="name" 
+                  placeholder="Enter category name" 
+                  required
+                >
+              </div>
+
+              <!-- Submit Button -->
+              <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-dark py-2">
+                  <i class="bi bi-folder-plus"></i> Add Category
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Existing Categories -->
+        <div class="card shadow-sm border-0 rounded-4 mt-4">
+          <div class="card-header bg-white text-center fw-bold fs-5 border-bottom">
+            Existing Categories
+          </div>
+          <div class="card-body">
+            {% if categories %}
+              <ul class="list-group list-group-flush">
+                {% for cat in categories %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ cat.name }}
+                    <span class="badge bg-dark rounded-pill">ID: {{ cat.id }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-center text-muted mb-0">No categories added yet.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="text-center mt-4">
+          <a href="{{ url_for('admin') }}" class="btn btn-outline-dark">
+            <i class="bi bi-arrow-left"></i> Back to Admin Panel
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .card {
+    background-color: #fff;
+  }
+  label {
+    color: #000;
+    font-weight: 500;
+  }
+  body {
+    background-color: #f8f9fa;
+  }
+  .list-group-item {
+    border-color: #dee2e6;
+  }
+</style>
+{% endblock %}

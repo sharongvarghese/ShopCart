@@ -3,11 +3,46 @@
 {% block title %}Home - Online Shop{% endblock %}
 
 {% block content %}
-<section class="hero-section d-flex align-items-center justify-content-center text-center mb-4">
-    <div class="hero-content py-3">
-        <h1 class="display-4 fw-bold">Welcome to ShopCart!</h1>
-        <p class="lead">Your one-stop shop for all your needs.</p>
-        <a class="btn btn-primary btn-lg" href="{{ url_for('signup') }}" role="button">Shop Now</a>
+{% if session.get('username') %}
+<section class="products-section py-5">
+  <div class="container">
+    <h2 class="text-center mb-5 fw-bold text-black">Available Products</h2>
+
+    {% if not products %}
+      <p class="text-center text-muted">No products available right now. Please check back later.</p>
+    {% else %}
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+      {% for product in products %}
+      <div class="col">
+        <div class="card h-100 shadow-sm border-0 product-card">
+          <div class="card-img-container">
+            <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" class="card-img-top" alt="{{ product.name }}">
+          </div>
+          <div class="card-body d-flex flex-column text-center">
+            <h5 class="card-title fw-bold text-black">{{ product.name }}</h5>
+            <p class="card-text text-secondary small">{{ product.description[:100] }}...</p>
+            <div class="mt-auto">
+              <p class="fw-bold fs-5 mb-2 text-black">₹{{ "%.2f"|format(product.price) }}</p>
+              <a href="" class="btn btn-primary w-100">
+                <i class="bi bi-cart-plus me-2"></i>Add to Cart
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
     </div>
+    {% endif %}
+  </div>
 </section>
+
+{% else %}
+<section class="hero-section d-flex align-items-center justify-content-center text-center" style="min-height: 80vh; background-color: #fff;">
+  <div class="hero-content py-5">
+    <h1 class="display-4 fw-bold text-black">Welcome to ShopCart!</h1>
+    <p class="lead mb-4 text-secondary">Your one-stop shop for everything you need.</p>
+    <a class="btn btn-primary btn-lg px-4 py-2" href="{{ url_for('login') }}">Shop Now</a>
+  </div>
+</section>
+{% endif %}
 {% endblock %}

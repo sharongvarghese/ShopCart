@@ -1,33 +1,59 @@
-from flask import Flask, render_template, redirect, url_for, flash, session
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Flask, render_template, redirect, url_for, flash, session, request
+from werkzeug.security import generate_password_hash
+from werkzeug.utils import secure_filename
 from forms import SignupForm, LoginForm, ProductForm
-from models import db, User, Product
+from models import db, User, Product, Category
 from flask_migrate import Migrate
-from flask_login import login_required
 from dotenv import load_dotenv
 import os
+import uuid
 
+# -------------------- LOAD ENV -------------------- #
 load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your_secret_key')
 
-# Database configuration
+# -------------------- DATABASE CONFIG -------------------- #
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize db with app
+# -------------------- UPLOAD CONFIG -------------------- #
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2 MB limit
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# -------------------- INITIALIZE -------------------- #
 db.init_app(app)
 migrate = Migrate(app, db)
 
-# Create tables
 with app.app_context():
     db.create_all()
 
+
+# -------------------- HELPER: SAVE IMAGE -------------------- #
+def save_image(image_file):
+    """Save uploaded image and return filename."""
+    if image_file:
+        filename = secure_filename(image_file.filename)
+        unique_name = f"{uuid.uuid4().hex}_{filename}"
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_name)
+        image_file.save(file_path)
+        return unique_name
+    return None
+
+
+# -------------------- ROUTES -------------------- #
+
 @app.route('/')
 def home():
-    return render_template('index.html')
+    categories = Category.query.all()
+    products = Product.query.all()
+    username = session.get('username', 'Guest')
+    return render_template('index.html', products=products, categories=categories, username=username)
 
+
+# -------------------- AUTH -------------------- #
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     form = SignupForm()
@@ -36,8 +62,10 @@ def signup():
         new_user = User(email=form.email.data, username=form.username.data, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
+        flash('Account created successfully! Please log in.', 'success')
         return redirect(url_for('login'))
-    return render_template('signup.html', form=form)   
+    return render_template('signup.html', form=form)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -46,48 +74,10 @@ def login():
         session['user_id'] = form.user.id
         session['username'] = form.user.username
         session['is_admin'] = True if form.user.username == os.getenv('ADMIN') else False
-    
         flash('Login successful!', 'success')
         return redirect(url_for('home'))
-    
     return render_template('login.html', form=form)
 
-@app.route('/admin')
-def admin():
-    # Check if admin is logged in
-    if not session.get('is_admin'):
-        flash('Access denied! Admins only.', 'danger')
-        return redirect(url_for('home'))
-    products = Product.query.all()    
-    return render_template('admin.html', products=products)
-
-@app.route('/add_product', methods=['GET', 'POST'])
-def add_product():
-    form = ProductForm()
-    if not session.get('is_admin'):
-        flash('Access denied! Admins only.', 'danger')
-        return redirect(url_for('home'))
-
-    if form.validate_on_submit():
-        # category = Category.query.filter_by(name=form.category.data).first()
-        # if not category:
-        #     category = Category(name=form.category.data)
-        #     db.session.add(category)
-        #     db.session.commit()
-        
-        new_product = Product(
-            name=form.name.data,
-            price=float(form.price.data),
-            description=form.description.data,
-            image_url=form.image_url.data,
-            category=form.category.data
-        )
-        db.session.add(new_product)
-        db.session.commit()
-        flash('Product added successfully!', 'success')
-        return redirect(url_for('admin'))    
-
-    return render_template('add_product.html', form=form)
 
 @app.route('/logout')
 def logout():
@@ -96,6 +86,122 @@ def logout():
     return redirect(url_for('home'))
 
 
+# -------------------- ADMIN PANEL -------------------- #
+@app.route('/admin')
+def admin():
+    if not session.get('is_admin'):
+        flash('Access denied! Admins only.', 'danger')
+        return redirect(url_for('home'))
 
+    products = Product.query.all()
+    categories = Category.query.all()
+    return render_template('admin.html', products=products, categories=categories)
+
+
+@app.route('/add_category', methods=['GET', 'POST'])
+def add_category():
+    if not session.get('is_admin'):
+        flash('Access denied! Admins only.', 'danger')
+        return redirect(url_for('home'))
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        if Category.query.filter_by(name=name).first():
+            flash('Category already exists.', 'warning')
+        else:
+            db.session.add(Category(name=name))
+            db.session.commit()
+            flash('Category added successfully!', 'success')
+        return redirect(url_for('add_category'))
+
+    categories = Category.query.all()
+    return render_template('add_category.html', categories=categories)
+
+
+@app.route('/add_product', methods=['GET', 'POST'])
+def add_product():
+    if not session.get('is_admin'):
+        flash('Access denied! Admins only.', 'danger')
+        return redirect(url_for('home'))
+
+    form = ProductForm()
+    form.category.choices = [(c.id, c.name) for c in Category.query.all()]
+
+    if form.validate_on_submit():
+        image_file = form.image.data
+        image_filename = secure_filename(image_file.filename)
+        image_path = os.path.join(app.root_path, 'static/uploads', image_filename)
+        image_file.save(image_path)
+
+        new_product = Product(
+            name=form.name.data,
+            price=float(form.price.data),
+            description=form.description.data,
+            image_filename=image_filename,
+            category_id=form.category.data
+        )
+        db.session.add(new_product)
+        db.session.commit()
+        flash('Product added successfully!', 'success')
+        return redirect(url_for('admin'))
+
+    return render_template('add_product.html', form=form)
+
+
+
+@app.route('/edit_product/<int:product_id>', methods=['GET', 'POST'])
+def edit_product(product_id):
+    if not session.get('is_admin'):
+        flash('Access denied! Admins only.', 'danger')
+        return redirect(url_for('home'))
+
+    product = Product.query.get_or_404(product_id)
+    form = ProductForm(obj=product)
+    form.category.choices = [(c.id, c.name) for c in Category.query.all()]
+
+    if form.validate_on_submit():
+        product.name = form.name.data
+        product.price = float(form.price.data)
+        product.description = form.description.data
+        product.category_id = form.category.data
+
+        if form.image.data:
+            image_filename = save_image(form.image.data)
+            product.image_filename = image_filename
+
+        db.session.commit()
+        flash('Product updated successfully!', 'success')
+        return redirect(url_for('admin'))
+
+    return render_template('edit_product.html', form=form, product=product)
+
+
+@app.route('/delete_product/<int:product_id>', methods=['POST'])
+def delete_product(product_id):
+    if not session.get('is_admin'):
+        flash('Access denied! Admins only.', 'danger')
+        return redirect(url_for('home'))
+
+    product = Product.query.get_or_404(product_id)
+    db.session.delete(product)
+    db.session.commit()
+    flash('Product deleted successfully!', 'success')
+    return redirect(url_for('admin'))
+
+
+# -------------------- PRODUCT DISPLAY -------------------- #
+@app.route('/products/<int:category_id>')
+def products_by_category(category_id):
+    category = Category.query.get_or_404(category_id)
+    products = Product.query.filter_by(category_id=category.id).all()
+    username = session.get('username', 'Guest')
+    return render_template('products.html', category=category, products=products, username=username)
+
+
+# -------------------- CART SYSTEM -------------------- #
+
+
+
+# -------------------- RUN APP -------------------- #
 if __name__ == "__main__":
     app.run(debug=True)

@@ -11,62 +11,69 @@
             Add New Product
           </div>
           <div class="card-body p-4">
-            <form method="POST" action="{{ url_for('add_product') }}">
+            <form 
+              method="POST" 
+              action="{{ url_for('add_product') }}" 
+              enctype="multipart/form-data"
+            >
               {{ form.hidden_tag() }}
+
               <!-- Product Name -->
               <div class="mb-3">
-                <label class="form-label fw-semibold">Product Name</label>
+                <label class="form-label">Product Name</label>
                 {{ form.name(class="form-control border-dark", placeholder="Enter product name") }}
                 {% for error in form.name.errors %}
-                <div class="text-danger small">{{ error }}</div>
+                  <div class="text-danger small">{{ error }}</div>
                 {% endfor %}
               </div>
 
               <!-- Price -->
               <div class="mb-3">
-                <label class="form-label fw-semibold">Price (₹)</label>
+                <label class="form-label">Price (₹)</label>
                 {{ form.price(class="form-control border-dark", placeholder="Enter price") }}
                 {% for error in form.price.errors %}
-                <div class="text-danger small">{{ error }}</div>
+                  <div class="text-danger small">{{ error }}</div>
                 {% endfor %}
               </div>
 
               <!-- Description -->
               <div class="mb-3">
-                <label class="form-label fw-semibold">Description</label>
+                <label class="form-label">Description</label>
                 {{ form.description(class="form-control border-dark", rows="3", placeholder="Enter product description") }}
                 {% for error in form.description.errors %}
-                <div class="text-danger small">{{ error }}</div>
+                  <div class="text-danger small">{{ error }}</div>
                 {% endfor %}
               </div>
 
-              <!-- Image URL -->
+              <!-- Image Upload -->
               <div class="mb-3">
-                <label class="form-label fw-semibold">Image URL</label>
-                {{ form.image_url(class="form-control border-dark", placeholder="Paste product image URL") }}
-                {% for error in form.image_url.errors %}
-                <div class="text-danger small">{{ error }}</div>
+                <label class="form-label">Product Image</label>
+                {{ form.image(class="form-control border-dark") }}
+                <small class="text-muted">Only .jpg, .jpeg, .png files (max 2MB)</small>
+                {% for error in form.image.errors %}
+                  <div class="text-danger small">{{ error }}</div>
                 {% endfor %}
               </div>
 
-              <!-- Category -->
+              <!-- Category Dropdown -->
               <div class="mb-3">
-                <label class="form-label fw-semibold">Category</label>
-                {{ form.category(class="form-control border-dark", placeholder="Enter or select category") }}
+                <label class="form-label">Category</label>
+                {{ form.category(class="form-select border-dark") }}
                 {% for error in form.category.errors %}
-                <div class="text-danger small">{{ error }}</div>
+                  <div class="text-danger small">{{ error }}</div>
                 {% endfor %}
               </div>
 
               <!-- Submit Button -->
               <div class="d-grid mt-4">
-                <button type="submit" class="btn btn-dark fw-bold py-2">
+                <button type="submit" class="btn btn-dark py-2">
                   <i class="bi bi-plus-circle"></i> Add Product
                 </button>
               </div>
             </form>
           </div>
         </div>
+
         <div class="text-center mt-4">
           <a href="{{ url_for('admin') }}" class="btn btn-outline-dark">
             <i class="bi bi-arrow-left"></i> Back to Admin Panel
@@ -79,10 +86,11 @@
 
 <style>
   .card {
-    background-color: #ffffff;
+    background-color: #fff;
   }
   label {
     color: #000;
+    font-weight: 500;
   }
   body {
     background-color: #f8f9fa;

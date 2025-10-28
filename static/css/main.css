@@ -1,16 +1,113 @@
-.hero-section{
-    padding-top: 15%;
-    
+/* -------------------- GLOBAL -------------------- */
+body {
+  font-family: "Arima", system-ui;
+  background-color: #ffffff;
+  color: #000000;
+  margin: 0;
+  padding: 0;
 }
 
-
-body{
-    font-family: "Arima", system-ui;   
-}
+/* Alerts */
 .alert {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2000;
   width: 80%;
+}
+
+/* -------------------- NAVBAR -------------------- */
+.navbar {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.navbar-brand {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #000 !important;
+}
+
+.navbar-nav .nav-link {
+  font-weight: 400 !important;
+  font-size: 0.95rem;
+  color: #333 !important;
+  transition: color 0.2s ease;
+}
+
+.navbar-nav .nav-link:hover {
+  color: #000 !important;
+}
+
+.btn-outline-dark {
+  font-size: 0.85rem;
+}
+
+/* -------------------- HERO SECTION -------------------- */
+.hero-section {
+  padding-top: 15%;
+  text-align: center;
+  background-color: #fff;
+}
+
+.hero-section h1 {
+  font-weight: 700;
+  color: #000;
+}
+
+.hero-section p {
+  color: #555;
+  font-size: 1.1rem;
+}
+
+/* -------------------- BUTTONS -------------------- */
+.btn-primary {
+  background-color: #000;
+  border: none;
+  color: #fff;
+  transition: 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #333;
+  color: #fff;
+}
+
+/* -------------------- PRODUCT CARDS -------------------- */
+.product-card {
+  background-color: #fff;
+  color: #000;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-container {
+  background-color: #f9f9f9;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-img-top {
+  max-height: 230px;
+  width: auto;
+  border-radius: 8px;
+}
+
+/* -------------------- FOOTER -------------------- */
+footer {
+  background-color: #ffffff;
+  color: #000000;
+  border-top: 1px solid #e5e5e5;
+  text-align: center;
+  padding: 1rem 0;
+  margin-top: 3rem;
+  font-size: 0.9rem;
 }

@@ -1,6 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, SelectField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
+from flask_wtf.file import FileField, FileAllowed 
+from models import Category
 
 
 
@@ -40,8 +42,8 @@ class ProductForm(FlaskForm):
     name = StringField('Product Name', validators=[DataRequired()])
     price = StringField('Price', validators=[DataRequired()])
     description = StringField('Description')
-    image_url = StringField('Image URL')
-    category = StringField('Category', validators=[DataRequired()])
+    image = FileField('Product Image', validators=[FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
+    category = SelectField('Category', coerce=int, validators=[DataRequired()])
     submit = SubmitField('Add Product')
 
     def validate_price(self, price):
