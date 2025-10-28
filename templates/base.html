@@ -39,11 +39,14 @@
           <a class="nav-link text-dark" href="{{ url_for('home') }}">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-dark" href="">Products</a>
+          <a class="nav-link text-warning" href="{{ url_for('cart') }}">
+        <i class="bi bi-cart"></i> Cart
+        {% if session.cart %}
+            <span class="badge bg-danger">{{ session.cart|length }}</span>
+        {% endif %}
+         </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link text-dark" href="">Cart</a>
-        </li>
+
         <li class="nav-item mx-2 text-muted">|</li>
         {% if session.get('username') %}
           <li class="nav-item">

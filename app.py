@@ -200,6 +200,67 @@ def products_by_category(category_id):
 
 # -------------------- CART SYSTEM -------------------- #
 
+# -------------------- CART SYSTEM -------------------- #
+
+def get_cart():
+    """Return the current cart from session or empty dict."""
+    return session.get('cart', {})
+
+@app.route('/add_to_cart/<int:product_id>')
+def add_to_cart(product_id):
+    product = Product.query.get_or_404(product_id)
+    cart = get_cart()
+
+    if str(product_id) in cart:
+        cart[str(product_id)]['quantity'] += 1
+    else:
+        cart[str(product_id)] = {
+            'name': product.name,
+            'price': product.price,
+            'image': product.image_filename,
+            'quantity': 1
+        }
+
+    session['cart'] = cart
+    flash(f'Added {product.name} to cart!', 'success')
+    return redirect(request.referrer or url_for('home'))
+
+
+@app.route('/cart')
+def cart():
+    cart = get_cart()
+    total = sum(item['price'] * item['quantity'] for item in cart.values())
+    return render_template('cart.html', cart=cart, total=total)
+
+
+@app.route('/remove_from_cart/<int:product_id>')
+def remove_from_cart(product_id):
+    cart = get_cart()
+    product_id = str(product_id)
+
+    if product_id in cart:
+        del cart[product_id]
+        session['cart'] = cart
+        flash('Item removed from cart.', 'info')
+    else:
+        flash('Item not found in cart.', 'warning')
+
+    return redirect(url_for('cart'))
+
+
+@app.route('/update_cart/<int:product_id>', methods=['POST'])
+def update_cart(product_id):
+    cart = get_cart()
+    product_id = str(product_id)
+
+    if product_id in cart:
+        quantity = int(request.form.get('quantity', 1))
+        cart[product_id]['quantity'] = quantity if quantity > 0 else 1
+        session['cart'] = cart
+        flash('Cart updated successfully.', 'success')
+
+    return redirect(url_for('cart'))
+
 
 
 # -------------------- RUN APP -------------------- #
