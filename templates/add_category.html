@@ -44,8 +44,17 @@
               <ul class="list-group list-group-flush">
                 {% for cat in categories %}
                   <li class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ cat.name }}
-                    <span class="badge bg-dark rounded-pill">ID: {{ cat.id }}</span>
+                    <div>
+                      <span class="badge bg-dark rounded-pill me-2">ID: {{ cat.id }}</span>
+                      {{ cat.name }}
+                    </div>
+
+                    <!-- Trash Icon (Remove) -->
+                    <form method="POST" action="{{ url_for('delete_category', category_id=cat.id) }}" class="m-0">
+                      <button type="submit" class="border-0 bg-transparent text-danger delete-icon" title="Remove">
+                        <i class="bi bi-trash fs-5"></i>
+                      </button>
+                    </form>
                   </li>
                 {% endfor %}
               </ul>
@@ -66,18 +75,34 @@
 </section>
 
 <style>
-  .card {
-    background-color: #fff;
+  body {
+    background-color: #f8f9fa;
   }
   label {
     color: #000;
     font-weight: 500;
   }
-  body {
-    background-color: #f8f9fa;
-  }
   .list-group-item {
     border-color: #dee2e6;
   }
+  .delete-icon {
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .delete-icon:hover {
+    color: #bb2d3b;
+  }
 </style>
+
+<script>
+  document.querySelectorAll('.delete-icon').forEach(icon => {
+    icon.addEventListener('click', function(e) {
+      if (!confirm("Are you sure you want to delete this category?")) {
+        e.preventDefault();
+      }
+    });
+  });
+</script>
+
 {% endblock %}
+

@@ -52,4 +52,5 @@ class ProductForm(FlaskForm):
         except ValueError:
             raise ValidationError('Please enter a valid price.')
 
+            
 

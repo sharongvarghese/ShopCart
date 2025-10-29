@@ -92,70 +92,31 @@ body {
 }
 
 /* -------------------- PRODUCT CARDS -------------------- */
-/* -------------------- MODERN PRODUCT CARD REFINEMENTS -------------------- */
 .product-card {
-  border-radius: 14px;
-  overflow: hidden;
-  transition: all 0.25s ease;
-  border: 1px solid #eaeaea;
-  background: #fff;
+  background-color: #fff;
+  color: #000;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .product-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  transform: translateY(-4px);
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Image area */
 .card-img-container {
-  background-color: #f8f8f8;
-  height: 200px;
+  background-color: #f9f9f9;
+  height: 250px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.card-img-container img {
-  max-height: 180px;
-  object-fit: contain;
-  transition: transform 0.3s ease;
-}
-
-.product-card:hover .card-img-container img {
-  transform: scale(1.05);
-}
-
-/* Body area */
-.card-body {
-  padding: 1rem 1rem 1.25rem;
-}
-
-.card-title {
-  font-size: 1.05rem;
-  font-weight: 600;
-}
-
-.card-text {
-  color: #666;
-  line-height: 1.4;
-  font-size: 0.9rem;
-  min-height: 40px;
-}
-
-/* Price & button */
-.product-card p.fw-bold {
-  margin-bottom: 0.5rem;
-}
-
-.product-card .btn {
-  font-size: 0.9rem;
-  font-weight: 500;
+.card-img-top {
+  max-height: 230px;
+  width: auto;
   border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.product-card .btn:hover {
-  transform: scale(1.03);
 }
 
 /* -------------------- CART PAGE -------------------- */

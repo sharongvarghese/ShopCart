@@ -117,6 +117,28 @@ def add_category():
     categories = Category.query.all()
     return render_template('add_category.html', categories=categories)
 
+@app.route('/delete_category/<int:category_id>', methods=['POST'])
+def delete_category(category_id):
+    category = Category.query.get_or_404(category_id)
+    
+    # Check if any products exist in this category
+    products_in_category = Product.query.filter_by(category_id=category_id).count()
+    
+    if products_in_category > 0:
+        flash(f"⚠️ You can’t delete '{category.name}' because it contains {products_in_category} product(s).", "warning")
+        return redirect(url_for('add_category'))
+    
+    try:
+        db.session.delete(category)
+        db.session.commit()
+        flash(f"✅ Category '{category.name}' deleted successfully.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("❌ Something went wrong while deleting the category.", "danger")
+    
+    return redirect(url_for('add_category'))
+
+
 
 @app.route('/add_product', methods=['GET', 'POST'])
 def add_product():
@@ -279,7 +301,11 @@ def update_cart(product_id):
 
     return redirect(url_for('cart'))
 
-
+@app.route('/clear_cart')
+def clear_cart():
+    session.pop('cart', None)
+    flash('Cart cleared successfully.', 'info')
+    return redirect(url_for('cart'))    
 
 # -------------------- RUN APP -------------------- #
 if __name__ == "__main__":
