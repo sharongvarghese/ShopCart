@@ -24,11 +24,13 @@
                         <td class="fw-semibold">{{ item.name }}</td>
                         <td>₹{{ '%.2f'|format(item.price) }}</td>
                         <td>
-                            <form action="{{ url_for('update_cart', product_id=product_id) }}" method="POST" class="d-inline">
-                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" 
-                                       class="form-control d-inline w-50 text-center border-dark">
-                                <button type="submit" class="btn btn-sm btn-outline-dark ms-2">Update</button>
+                           <form action="{{ url_for('update_cart', product_id=product_id) }}" method="POST" class="d-inline-flex align-items-center">
+                                <button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-dark">−</button>
+                                <input type="hidden" name="quantity" value="{{ item.quantity }}">
+                                <span class="mx-2">{{ item.quantity }}</span>
+                                <button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-dark">+</button>
                             </form>
+
                         </td>
                         <td>₹{{ '%.2f'|format(item.price * item.quantity) }}</td>
                         <td>
@@ -44,7 +46,7 @@
 
         <div class="text-end mt-4">
             <h4 class="text-dark">Grand Total: ₹{{ '%.2f'|format(total) }}</h4>
-            <a href="#" class="btn btn-dark mt-3">Proceed to Payment</a>
+            <a href="#" class="btn btn-dark mt-3">Place Order</a>
         </div>
 
     {% else %}

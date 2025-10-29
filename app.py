@@ -269,10 +269,13 @@ def update_cart(product_id):
     product_id = str(product_id)
 
     if product_id in cart:
-        quantity = int(request.form.get('quantity', 1))
-        cart[product_id]['quantity'] = quantity if quantity > 0 else 1
+        action = request.form.get('action')
+        if action == 'increase':
+            cart[product_id]['quantity'] += 1
+        elif action == 'decrease' and cart[product_id]['quantity'] > 1:
+            cart[product_id]['quantity'] -= 1
+
         session['cart'] = cart
-        flash('Cart updated successfully.', 'success')
 
     return redirect(url_for('cart'))
 
