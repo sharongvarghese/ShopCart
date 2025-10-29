@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
+from wtforms import StringField, PasswordField, SubmitField, SelectField, TextAreaField
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Length
 from flask_wtf.file import FileField, FileAllowed 
 from models import Category
 
@@ -53,4 +53,12 @@ class ProductForm(FlaskForm):
             raise ValidationError('Please enter a valid price.')
 
             
-
+class CheckoutForm(FlaskForm):
+    name = StringField("Full Name", validators=[DataRequired(), Length(min=2, max=100)])
+    email = StringField("Email", validators=[DataRequired(), Email()])
+    phone = StringField("Phone Number", validators=[DataRequired(), Length(min=10, max=15)])
+    address = TextAreaField("Address", validators=[DataRequired(), Length(min=5)])
+    landmark = StringField("Landmark (optional)")
+    city = StringField("City", validators=[DataRequired()])
+    pincode = StringField("Pincode", validators=[DataRequired(), Length(min=4, max=10)])
+    submit = SubmitField("Proceed to Payment")

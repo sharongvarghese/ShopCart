@@ -62,7 +62,7 @@
 
     <div class="text-end mt-4">
       <h4 class="fw-bold text-black">Grand Total: ₹{{ '%.2f'|format(total) }}</h4>
-      <a href="#" class="btn btn-dark rounded-0 mt-3 px-5 py-2 fw-semibold">
+      <a href="{{url_for('checkout')}}" class="btn btn-dark rounded-0 mt-3 px-5 py-2 fw-semibold">
         Place Order
       </a>
     </div>

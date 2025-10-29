@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, session, request
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
-from forms import SignupForm, LoginForm, ProductForm
+from forms import SignupForm, LoginForm, ProductForm, CheckoutForm
 from models import db, User, Product, Category
 from flask_migrate import Migrate
 from dotenv import load_dotenv
@@ -306,6 +306,96 @@ def clear_cart():
     session.pop('cart', None)
     flash('Cart cleared successfully.', 'info')
     return redirect(url_for('cart'))    
+
+
+
+# -------------------- CHECKOUT & ORDER PROCESSING -------------------- #
+
+from flask import render_template, redirect, url_for, session, flash, request
+from models import Order, OrderItem, db
+from forms import CheckoutForm
+
+@app.route("/checkout", methods=["GET", "POST"])
+def checkout():
+    cart = session.get("cart", {})
+    if not cart:
+        flash("Your cart is empty!", "warning")
+        return redirect(url_for("home"))
+
+    form = CheckoutForm()
+    total = sum(item["price"] * item["quantity"] for item in cart.values())
+
+    if form.validate_on_submit():
+        # Save Order
+        order = Order(
+            name=form.name.data,
+            email=form.email.data,
+            phone=form.phone.data,
+            address=form.address.data,
+            landmark=form.landmark.data,
+            city=form.city.data,
+            pincode=form.pincode.data,
+            total_amount=total
+        )
+        db.session.add(order)
+        db.session.commit()  # Save to get order.id
+
+        # Save each cart item
+        for product_id, item in cart.items():
+            order_item = OrderItem(
+                order_id=order.id,
+                product_id=int(product_id),
+                product_name=item["name"],
+                quantity=item["quantity"],
+                price=item["price"],
+                subtotal=item["price"] * item["quantity"],
+                image=item.get("image")
+            )
+            db.session.add(order_item)
+
+        db.session.commit()
+
+        # Clear cart
+        session.pop("cart", None)
+
+        flash("Order saved successfully! Redirecting to payment...", "success")
+        return " Payment Section Under maintenance"
+
+    return render_template("checkout.html", form=form, cart=cart, total=total)
+
+@app.route("/admin/orders")
+def admin_orders():
+    orders = Order.query.order_by(Order.created_at.desc()).all()
+    return render_template("admin_orders.html", orders=orders)
+
+@app.route("/admin/update_order/<int:order_id>", methods=["POST"])
+def update_order(order_id):
+    order = Order.query.get_or_404(order_id)
+    new_status = request.form.get("status")
+    order.status = new_status
+    db.session.commit()
+    flash(f"Order #{order.id} status updated to {new_status}.", "success")
+    return redirect(url_for("admin_orders"))
+
+
+@app.route("/admin/delete_order/<int:order_id>", methods=["POST"])
+def delete_order(order_id):
+    order = Order.query.get_or_404(order_id)
+    db.session.delete(order)
+    db.session.commit()
+    flash(f"Order #{order.id} deleted successfully.", "warning")
+    return redirect(url_for("admin_orders"))
+
+
+
+@app.route('/payment_page')
+def payment_page():
+    order_data = session.get('order_data')
+    if not order_data:
+        flash('No order data found. Please checkout again.', 'warning')
+        return redirect(url_for('checkout'))
+
+    return "under maintenance"
 
 # -------------------- RUN APP -------------------- #
 if __name__ == "__main__":
