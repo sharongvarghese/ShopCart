@@ -198,7 +198,22 @@ def products_by_category(category_id):
     return render_template('products.html', category=category, products=products, username=username)
 
 
-# -------------------- CART SYSTEM -------------------- #
+
+# -------------------- PRODUCT DETAIL PAGE -------------------- #
+@app.route('/product/<int:product_id>')
+def product_detail(product_id):
+    """Display full details of a selected product."""
+    product = Product.query.get_or_404(product_id)
+    related_products = Product.query.filter(
+        Product.category_id == product.category_id,
+        Product.id != product.id
+    ).limit(4).all()
+    return render_template(
+        'product_detail.html',
+        product=product,
+        related_products=related_products
+    )
+
 
 # -------------------- CART SYSTEM -------------------- #
 

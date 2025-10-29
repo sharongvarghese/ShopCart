@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} - Details{% endblock %}
+{% block content %}
+
+<section class="product-detail py-5 bg-white">
+  <div class="container">
+    <div class="row align-items-center">
+
+      <!-- Product Image -->
+      <div class="col-md-5 text-center mb-4 mb-md-0">
+        <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}"
+             alt="{{ product.name }}" class="img-fluid rounded shadow-sm" style="max-height: 400px;">
+      </div>
+
+      <!-- Product Details -->
+      <div class="col-md-7">
+        <h2 class="fw-bold mb-3">{{ product.name }}</h2>
+        <p class="text-muted">{{ product.category.name }}</p>
+        <p class="text-secondary mb-4">{{ product.description }}</p>
+        <h4 class="fw-bold text-black mb-4">₹{{ "%.2f"|format(product.price) }}</h4>
+
+        <div class="d-flex gap-3">
+          <a href="{{ url_for('add_to_cart', product_id=product.id) }}" class="btn btn-dark px-4 py-2">
+            Add to Cart
+          </a>
+          <a href="{{ url_for('home') }}" class="btn btn-outline-dark px-4 py-2">
+            Back to Shop
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {% if related_products %}
+    <hr class="my-5">
+    <h4 class="fw-bold text-black mb-4 text-center">You may also like</h4>
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+      {% for item in related_products %}
+      <div class="col">
+        <div class="card product-card h-100 border-0 shadow-sm">
+          <a href="{{ url_for('product_detail', product_id=item.id) }}" class="text-decoration-none text-black">
+            <div class="card-img-container">
+              <img src="{{ url_for('static', filename='uploads/' + item.image_filename) }}"
+                   class="card-img-top" alt="{{ item.name }}">
+            </div>
+            <div class="card-body text-center">
+              <h6 class="fw-semibold">{{ item.name }}</h6>
+              <p class="text-secondary small mb-2">₹{{ "%.2f"|format(item.price) }}</p>
+            </div>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}
