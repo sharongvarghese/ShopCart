@@ -2,14 +2,17 @@ from flask import Flask, render_template, redirect, url_for, flash, session, req
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 from forms import SignupForm, LoginForm, ProductForm, CheckoutForm
-from models import db, User, Product, Category
+from models import db, User, Product, Category, Order, OrderItem, Notification
 from flask_migrate import Migrate
 from dotenv import load_dotenv
 import os
+import stripe 
 import uuid
 
 # -------------------- LOAD ENV -------------------- #
 load_dotenv()
+stripe.api_key = os.getenv('STRIPE_API_KEY')
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your_secret_key')
@@ -73,6 +76,7 @@ def login():
     if form.validate_on_submit():
         session['user_id'] = form.user.id
         session['username'] = form.user.username
+        session['user_email'] = form.user.email
         session['is_admin'] = True if form.user.username == os.getenv('ADMIN') else False
         flash('Login successful!', 'success')
         return redirect(url_for('home'))
@@ -311,10 +315,6 @@ def clear_cart():
 
 # -------------------- CHECKOUT & ORDER PROCESSING -------------------- #
 
-from flask import render_template, redirect, url_for, session, flash, request
-from models import Order, OrderItem, db
-from forms import CheckoutForm
-
 @app.route("/checkout", methods=["GET", "POST"])
 def checkout():
     cart = session.get("cart", {})
@@ -326,7 +326,7 @@ def checkout():
     total = sum(item["price"] * item["quantity"] for item in cart.values())
 
     if form.validate_on_submit():
-        # Save Order
+        # 1️⃣ Save the order first
         order = Order(
             name=form.name.data,
             email=form.email.data,
@@ -335,12 +335,13 @@ def checkout():
             landmark=form.landmark.data,
             city=form.city.data,
             pincode=form.pincode.data,
-            total_amount=total
+            total_amount=total,
+            status="Pending"
         )
         db.session.add(order)
-        db.session.commit()  # Save to get order.id
+        db.session.commit()
 
-        # Save each cart item
+        # Save each cart item to order items table
         for product_id, item in cart.items():
             order_item = OrderItem(
                 order_id=order.id,
@@ -352,21 +353,80 @@ def checkout():
                 image=item.get("image")
             )
             db.session.add(order_item)
-
         db.session.commit()
 
-        # Clear cart
-        session.pop("cart", None)
+        # Add admin notification
+        new_notification = Notification(message=f"🛒 New order placed by {order.name} (#{order.id})")
+        db.session.add(new_notification)
+        db.session.commit()
 
-        flash("Order saved successfully! Redirecting to payment...", "success")
-        return " Payment Section Under maintenance"
+        # 2️⃣ Convert cart items to Stripe line items
+        line_items = []
+        for item in cart.values():
+            line_items.append({
+                "price_data": {
+                    "currency": "inr",  # change to your country
+                    "product_data": {
+                        "name": item["name"],
+                    },
+                    "unit_amount": int(item["price"] * 100),  # Stripe uses paise/cents
+                },
+                "quantity": item["quantity"],
+            })
+
+        try:
+            # 3️⃣ Create Stripe checkout session
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=["card"],
+                line_items=line_items,
+                mode="payment",
+                customer_email=form.email.data,  # optional but good for receipts
+                success_url=url_for("payment_success", order_id=order.id, _external=True),
+                cancel_url=url_for("payment_cancel", order_id=order.id, _external=True),
+            )
+
+            # 4️⃣ Clear cart and redirect to Stripe
+            session.pop("cart", None)
+            flash("Redirecting to secure Stripe payment...", "info")
+            return redirect(checkout_session.url, code=303)
+
+        except Exception as e:
+            flash(f"Error creating payment session: {str(e)}", "danger")
+            return redirect(url_for("checkout"))
 
     return render_template("checkout.html", form=form, cart=cart, total=total)
+
+@app.route("/payment-success")
+def payment_success():
+    order_id = request.args.get("order_id")
+    if order_id:
+        order = Order.query.get(order_id)
+        if order:
+            order.status = "Paid"
+            db.session.commit()
+    flash("🎉 Payment successful! Thank you for your purchase.", "success")
+    return render_template("payment_success.html")
+
+
+@app.route("/payment-cancel")
+def payment_cancel():
+    order_id = request.args.get("order_id")
+    if order_id:
+        order = Order.query.get(order_id)
+        if order:
+            order.status = "Payment Failed"
+            db.session.commit()
+    flash("❌ Payment canceled. You can try again.", "warning")
+    return render_template("payment_cancel.html")
+
+
 
 @app.route("/admin/orders")
 def admin_orders():
     orders = Order.query.order_by(Order.created_at.desc()).all()
-    return render_template("admin_orders.html", orders=orders)
+    notifications = Notification.query.order_by(Notification.created_at.desc()).limit(5).all()
+    return render_template("admin_orders.html", orders=orders, notifications=notifications)
+
 
 @app.route("/admin/update_order/<int:order_id>", methods=["POST"])
 def update_order(order_id):
@@ -386,6 +446,48 @@ def delete_order(order_id):
     flash(f"Order #{order.id} deleted successfully.", "warning")
     return redirect(url_for("admin_orders"))
 
+@app.route("/my-orders")
+def user_orders():
+    user_email = session.get("user_email")  # assuming login stores email in session
+    if not user_email:
+        flash("Please log in to view your orders.", "warning")
+        return redirect(url_for("login"))
+    
+    orders = Order.query.filter_by(email=user_email).order_by(Order.created_at.desc()).all()
+    return render_template("user_orders.html", orders=orders)
+
+
+@app.route("/cancel-order/<int:order_id>", methods=["POST"])
+def cancel_order(order_id):
+    user_email = session.get("user_email")
+    if not user_email:
+        flash("Please log in to cancel an order.", "warning")
+        return redirect(url_for("login"))
+
+    order = Order.query.get_or_404(order_id)
+
+    # Ensure user can only cancel their own order
+    if order.email != user_email:
+        flash("Unauthorized action.", "danger")
+        return redirect(url_for("user_orders"))
+
+    # Allow cancel only if status is Pending or Confirmed
+    if order.status not in ["Pending", "Confirmed"]:
+        flash("You can only cancel orders that are still pending or confirmed.", "warning")
+        return redirect(url_for("user_orders"))
+
+    # Update status
+    order.status = "Cancelled"
+    db.session.commit()
+
+    # Add notification for admin
+    from models import Notification  # import here to avoid circular import
+    cancel_note = Notification(message=f"{order.name} cancelled Order #{order.id}")
+    db.session.add(cancel_note)
+    db.session.commit()
+
+    flash(f"Your order #{order.id} has been cancelled successfully.", "info")
+    return redirect(url_for("user_orders"))
 
 
 @app.route('/payment_page')

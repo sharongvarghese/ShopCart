@@ -51,3 +51,13 @@ class OrderItem(db.Model):
     price = db.Column(db.Float, nullable=False)
     subtotal = db.Column(db.Float, nullable=False)
     image = db.Column(db.String(255))
+
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_read = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return f"<Notification {self.message[:30]}...>"
